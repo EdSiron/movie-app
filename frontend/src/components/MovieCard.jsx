@@ -5,26 +5,37 @@ const MovieCard = ({
   movie: {
     id,
     title,
+    name, 
+    release_date,
+    first_air_date,
     vote_average,
     poster_path,
-    release_date,
     original_language,
+    media_type,
   },
 }) => {
+  const displayTitle = title || name;
+  const date = release_date || first_air_date;
+  const displayYear = date ? date.split("-")[0] : "N/A";
+  const isTV = media_type === 'tv' || (!media_type && name && !title);
+  const mediaTypeForLink = isTV ? 'tv' : 'movie';
+  
+  if (!displayTitle) return null; 
+
   return (
     <div className="movie-card">
-      <Link to={`/movie/${id}`}>
+      <Link to={`/${mediaTypeForLink}/${id}`}>
         <img
           src={
             poster_path
               ? `https://image.tmdb.org/t/p/w500/${poster_path}`
               : "/no-movie.png"
           }
-          alt={title}
+          alt={displayTitle}
         />
 
         <div className="mt-4">
-          <h3 className="line-clamp-2">{title}</h3>
+          <h3 className="line-clamp-2">{displayTitle}</h3>
           <div className="content flex flex-row items-center flex-wrap gap-2">
             <div className="rating flex flex-row items-center gap-1">
               <img
@@ -36,6 +47,15 @@ const MovieCard = ({
                 {vote_average ? vote_average.toFixed(1) : "N/A"}
               </p>
             </div>
+            
+            {(media_type || isTV) && ( 
+                <>
+                    <span className="text-sm text-gray-100 hidden sm:inline">•</span>
+                    <p className="media-type capitalize text-gray-100 font-bold text-sm sm:text-base">
+                        {mediaTypeForLink === 'tv' ? 'TV' : 'Movie'}
+                    </p>
+                </>
+            )}
 
             <span className="text-sm text-gray-100 hidden sm:inline">•</span>
             <p className="lang capitalize text-gray-100 font-medium text-sm sm:text-base">
@@ -43,7 +63,7 @@ const MovieCard = ({
             </p>
             <span className="text-sm text-gray-100 hidden sm:inline">•</span>
             <p className="year text-gray-100 font-medium text-sm sm:text-base">
-              {release_date ? release_date.split("-")[0] : "N/A"}
+              {displayYear}
             </p>
           </div>
         </div>

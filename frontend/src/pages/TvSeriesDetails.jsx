@@ -17,58 +17,62 @@ const API_OPTIONS = {
 const fetchData = async (endpoint) => {
   const response = await fetch(endpoint, API_OPTIONS);
   if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error("TV series not found.");
+    }
     throw new Error("Failed to fetch data");
   }
   return response.json();
 };
 
-const MovieDetails = () => {
+const TvSeriesDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [detailedMovie, setDetailedMovie] = useState(null);
-  const [similarMovies, setSimilarMovies] = useState([]);
-  const [homepage, setHomepage] = useState("");
+  const [detailedSeries, setDetailedSeries] = useState(null);
+  const [similarSeries, setSimilarSeries] = useState([]);
   const [trailerKey, setTrailerKey] = useState(null);
+  const [homepage, setHomepage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const fetchAllDetails = async (movieId) => {
+  const fetchAllDetails = async (tvId) => {
     try {
       setIsLoading(true);
       setErrorMessage("");
 
-      const movieDetailsPromise = fetchData(`${API_BASE_URL}/movie/${movieId}`);
-      const similarMoviesPromise = fetchData(
-        `${API_BASE_URL}/movie/${movieId}/similar`
+      const tvDetailsPromise = fetchData(`${API_BASE_URL}/tv/${tvId}`);
+      const similarTvPromise = fetchData(
+        `${API_BASE_URL}/tv/${tvId}/similar`
       );
       const creditsPromise = fetchData(
-        `${API_BASE_URL}/movie/${movieId}/credits`
+        `${API_BASE_URL}/tv/${tvId}/credits`
       );
       const videosPromise = fetchData(
-        `${API_BASE_URL}/movie/${movieId}/videos`
+        `${API_BASE_URL}/tv/${tvId}/videos`
       );
 
       const [details, similar, credits, videos] = await Promise.all([
-        movieDetailsPromise,
-        similarMoviesPromise,
+        tvDetailsPromise,
+        similarTvPromise,
         creditsPromise,
         videosPromise,
       ]);
-
-      const director = credits.crew.find((crew) => crew.job === "Director");
-
+      
+      const creator = credits.crew.find((crew) => crew.job === "Series Creator");
+      
       const trailer = videos.results.find(
         (video) => video.type === "Trailer" && video.site === "YouTube"
       );
-
-      setDetailedMovie({ ...details, director: director?.name || "N/A" });
+      
+      setDetailedSeries({ ...details, creator: creator?.name || "N/A" });
       setHomepage(details.homepage)
-      setSimilarMovies(similar.results.slice(0, 6) || []);
+      setSimilarSeries(similar.results.slice(0, 6) || []);
       setTrailerKey(trailer?.key || null);
+
     } catch (error) {
-      console.error(`Error fetching movie details: ${error}`);
-      setErrorMessage("Error fetching movie details. Please try again later.");
+      console.error(`Error fetching TV series details: ${error}`);
+      setErrorMessage(error.message || "Error fetching TV series details. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -85,6 +89,7 @@ const MovieDetails = () => {
     }
   }, [id]);
 
+
   if (isLoading)
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d]">
@@ -92,23 +97,31 @@ const MovieDetails = () => {
       </div>
     );
   if (errorMessage) return <p className="text-red-500 p-8">{errorMessage}</p>;
-  if (!detailedMovie) return null;
+  if (!detailedSeries) return null;
 
-  const backgroundImageUrl = detailedMovie?.backdrop_path
-    ? `https://image.tmdb.org/t/p/original/${detailedMovie.backdrop_path}`
+  const backgroundImageUrl = detailedSeries?.backdrop_path
+    ? `https://image.tmdb.org/t/p/original/${detailedSeries.backdrop_path}`
     : "";
 
-  const posterImageUrl = detailedMovie?.poster_path
-    ? `https://image.tmdb.org/t/p/w500/${detailedMovie.poster_path}`
+  const posterImageUrl = detailedSeries?.poster_path
+    ? `https://image.tmdb.org/t/p/w500/${detailedSeries.poster_path}`
     : "/no-movie.png";
 
-  const genres = detailedMovie.genres.map((g) => g.name).join(" | ");
-  const runtime = detailedMovie.runtime
-    ? `${detailedMovie.runtime} min`
+  const genres = detailedSeries.genres.map((g) => g.name).join(" | ");
+
+  const runtime = detailedSeries.episode_run_time?.[0] 
+    ? `${detailedSeries.episode_run_time[0]} min (per episode)`
     : "N/A";
-  const rating = detailedMovie.vote_average
-    ? detailedMovie.vote_average.toFixed(1)
+
+  const rating = detailedSeries.vote_average
+    ? detailedSeries.vote_average.toFixed(1)
     : "N/A";
+    
+  const seriesTitle = detailedSeries.name || "N/A"; 
+  const releaseDate = detailedSeries.first_air_date || "N/A";
+  const status = detailedSeries.status || "N/A";
+  const numSeasons = detailedSeries.number_of_seasons;
+  const numEpisodes = detailedSeries.number_of_episodes;
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-white">
@@ -130,15 +143,18 @@ const MovieDetails = () => {
           <div className="hidden md:block w-1/3 max-w-xs mr-10 h-100">
             <img
               src={posterImageUrl}
-              alt={detailedMovie.title}
+              alt={seriesTitle}
               className="rounded-lg shadow-2xl"
             />
           </div>
 
           <div className="w-full text-white">
             <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-2 leading-tight">
-              {detailedMovie.title}
+              {seriesTitle}
             </h2>
+            <p className="text-xl font-light text-gray-400 mb-4">
+              {detailedSeries.tagline} 
+            </p>
 
             <div className="flex items-center space-x-4 mb-4">
               <span className="text-xl font-bold">⭐ {rating}</span>
@@ -147,19 +163,28 @@ const MovieDetails = () => {
             </div>
 
             <p className="text-gray-300 max-w-2xl mb-6 text-base line-clamp-3 md:line-clamp-none">
-              {detailedMovie.overview}
+              {detailedSeries.overview}
             </p>
 
             <div className="space-y-2 mb-8 text-lg">
               <p>
-                <strong>Runtime:</strong> {runtime}
+                <strong>Episode Runtime:</strong> {runtime}
               </p>
               <p>
-                <strong>Release Date:</strong>{" "}
-                {detailedMovie.release_date || "N/A"}
+                <strong>First Air Date:</strong>{" "}
+                {releaseDate}
               </p>
               <p>
-                <strong>Director:</strong> {detailedMovie.director}
+                <strong>Seasons:</strong> {numSeasons || "N/A"}
+              </p>
+              <p>
+                <strong>Episodes:</strong> {numEpisodes || "N/A"}
+              </p>
+              <p>
+                <strong>Status:</strong> {status}
+              </p>
+              <p>
+                <strong>Creator:</strong> {detailedSeries.creator}
               </p>
             </div>
 
@@ -182,7 +207,7 @@ const MovieDetails = () => {
             <iframe
               className="absolute top-0 left-0 w-full h-full"
               src={`https://www.youtube.com/embed/${trailerKey}`}
-              title={`${detailedMovie.title} Trailer`}
+              title={`${seriesTitle} Trailer`}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -191,13 +216,13 @@ const MovieDetails = () => {
         </section>
       )}
 
-      {similarMovies.length > 0 && (
+      {similarSeries.length > 0 && (
         <section className="max-w-7xl mx-auto p-8 md:p-16 pt-0">
           <h2 className="text-3xl font-bold mb-8">More Like This</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6">
-            {similarMovies.map((movie) => (
-              <div key={movie.id}>
-                <MovieCard movie={movie} />
+            {similarSeries.map((series) => (
+              <div key={series.id}>
+                <MovieCard movie={series} />
               </div>
             ))}
           </div>
@@ -207,4 +232,4 @@ const MovieDetails = () => {
   );
 };
 
-export default MovieDetails;
+export default TvSeriesDetails;

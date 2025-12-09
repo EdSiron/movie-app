@@ -39,35 +39,65 @@ const HomePage = () => {
     }
   };
 
-  const fetchMovies = async (query = "") => {
+  const fetchResults = async (query = "") => {
     try {
       setIsLoading(true);
       setErrorMessage("");
-      const endpoint = query
-        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
-        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
-      const response = await fetch(endpoint, API_OPTIONS);
+      
+      let results = [];
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch movies");
+      if (query) {
+        const endpoint = `${API_BASE_URL}/search/multi?query=${encodeURIComponent(query)}`;
+        const response = await fetch(endpoint, API_OPTIONS);
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch search results");
+        }
+
+        const data = await response.json();
+        
+        results = (data.results || []).filter(
+            (item) => item.media_type !== "person"
+        );
+
+        if (query && results.length > 0) {
+          await updateSearchCount(query, results[0]);
+        }
+
+      } else {
+        const moviePromise = fetch(
+          `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`,
+          API_OPTIONS
+        ).then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch movies");
+          return res.json();
+        });
+
+        const tvPromise = fetch(
+          `${API_BASE_URL}/discover/tv?sort_by=popularity.desc`,
+          API_OPTIONS
+        ).then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch TV shows");
+          return res.json();
+        });
+
+        const [movieData, tvData] = await Promise.all([moviePromise, tvPromise]);
+
+        const allResults = [
+          ...(movieData.results || []),
+          ...(tvData.results || []),
+        ];
+
+        results = allResults.sort(
+          (a, b) => (b.popularity || 0) - (a.popularity || 0)
+        );
       }
 
-      const data = await response.json();
+      setMovieList(results);
 
-      if (data.Response === "False") {
-        setErrorMessage(data.Error || "Failed to fetch movies");
-        setMovieList([]);
-        return;
-      }
-
-      setMovieList(data.results || []);
-
-      if (query && data.results.length > 0) {
-        await updateSearchCount(query, data.results[0]);
-      }
     } catch (error) {
-      console.error(`Error fetching movies: ${error}`);
-      setErrorMessage("Error fetching movies. Please try again later.");
+      console.error(`Error fetching results: ${error}`);
+      setErrorMessage("Error fetching results. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -83,7 +113,7 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    fetchMovies(searchQuery);
+    fetchResults(searchQuery);
   }, [searchQuery]);
 
   useEffect(() => {
@@ -98,11 +128,11 @@ const HomePage = () => {
             <img
               src="./logo.png"
               alt="Logo"
-              className="w-16 h-16 sm:w-[70px] sm:h-[70px] object-contain mx-auto "
+              className="w-24 h-24 sm:w-full sm:h-[80px] object-contain mx-auto "
             />
-            <img src="./hero.png" alt="Hero Banner" className="w-full max-w-lg h-auto object-contain mx-auto drop-shadow-md mt-4" />
+            <img src="./hero.png" alt="Hero Banner" className="w-full max-w-lg h-auto object-contain mx-auto drop-shadow-md" />
             <h1>
-              Find <span className="text-gradient">Movies</span> You'll Enjoy
+              Find <span className="text-gradient">Movies & TV</span> You'll Enjoy
               Without the Hassle
             </h1>
             
@@ -115,7 +145,7 @@ const HomePage = () => {
 
           {trendingMovies.length > 0 && (
             <section className="trending">
-              <h2>Trending Movies</h2>
+              <h2>Trending Movies & Shows</h2>
               
               <ul className="flex flex-row overflow-x-auto gap-5 w-full hide-scrollbar">
                 {trendingMovies.map((movie, index) => (
@@ -133,7 +163,7 @@ const HomePage = () => {
           )}
 
           <section className="all-movies" ref={resultsRef}>
-            <h2>{searchQuery ? `Results for "${searchQuery}"` : "All Movies"}</h2>
+            <h2>{searchQuery ? `Results for "${searchQuery}"` : "All Movies & TV Shows"}</h2>
             {isLoading ? (
               <Spinner />
             ) : errorMessage ? (
