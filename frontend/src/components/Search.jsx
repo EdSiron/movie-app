@@ -16,7 +16,7 @@ const Search = ({ searchTerm, setSearchTerm, onSearchSubmit }) => {
       <form onSubmit={handleSubmit}>
         <div className="flex text-center justify-between">
           <img
-            src="search.svg"
+            src="/movie-app/search.svg"
             alt="search"
             className="cursor-pointer"
             onClick={handleSubmit}
@@ -29,7 +29,7 @@ const Search = ({ searchTerm, setSearchTerm, onSearchSubmit }) => {
           />
           {searchTerm.length > 0 && (
             <img
-              src="close.svg"
+              src="/movie-app/close.svg"
               alt="clear search"
               onClick={handleClearSearch}
               className="clear-icon"

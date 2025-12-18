@@ -100,7 +100,7 @@ const MovieDetails = () => {
 
   const posterImageUrl = detailedMovie?.poster_path
     ? `https://image.tmdb.org/t/p/w500/${detailedMovie.poster_path}`
-    : "/no-movie.png";
+    : "/movie-app/no-movie.png";
 
   const genres = detailedMovie.genres.map((g) => (
     <span key={g.id} className="border-2 mr-2 px-2 py-1 rounded">

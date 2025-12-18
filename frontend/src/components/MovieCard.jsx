@@ -29,7 +29,7 @@ const MovieCard = ({
           src={
             poster_path
               ? `https://image.tmdb.org/t/p/w500/${poster_path}`
-              : "/no-movie.png"
+              : "/movie-app/no-movie.png"
           }
           alt={displayTitle}
         />
@@ -39,7 +39,7 @@ const MovieCard = ({
           <div className="content flex flex-row items-center flex-wrap gap-2">
             <div className="rating flex flex-row items-center gap-1">
               <img
-                src="/star.svg"
+                src="/movie-app/star.svg"
                 alt="Star Icon"
                 className="w-4 h-4 object-contain"
               />

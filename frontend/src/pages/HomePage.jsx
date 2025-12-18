@@ -126,11 +126,11 @@ const HomePage = () => {
         <div className="wrapper">
           <header>
             <img
-              src="./logo.png"
+              src="/movie-app/logo.png"
               alt="Logo"
               className="w-24 h-24 sm:w-full sm:h-[80px] object-contain mx-auto "
             />
-            <img src="./hero.png" alt="Hero Banner" className="w-full max-w-lg h-auto object-contain mx-auto drop-shadow-md" />
+            <img src="/movie-app/hero.png" alt="Hero Banner" className="w-full max-w-lg h-auto object-contain mx-auto drop-shadow-md" />
             <h1>
               Find <span className="text-gradient">Movies & TV</span> You'll Enjoy
               Without the Hassle

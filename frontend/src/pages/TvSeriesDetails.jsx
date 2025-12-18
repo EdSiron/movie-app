@@ -102,7 +102,7 @@ const TvSeriesDetails = () => {
 
   const posterImageUrl = detailedSeries?.poster_path
     ? `https://image.tmdb.org/t/p/w500/${detailedSeries.poster_path}`
-    : "/no-movie.png";
+    : "/movie-app/no-movie.png";
 
   const genres = detailedSeries.genres.map((g) => (
     <span key={g.id} className="border-2 mr-2 px-2 py-1 rounded">
