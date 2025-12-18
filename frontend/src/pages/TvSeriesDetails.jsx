@@ -42,15 +42,9 @@ const TvSeriesDetails = () => {
       setErrorMessage("");
 
       const tvDetailsPromise = fetchData(`${API_BASE_URL}/tv/${tvId}`);
-      const similarTvPromise = fetchData(
-        `${API_BASE_URL}/tv/${tvId}/similar`
-      );
-      const creditsPromise = fetchData(
-        `${API_BASE_URL}/tv/${tvId}/credits`
-      );
-      const videosPromise = fetchData(
-        `${API_BASE_URL}/tv/${tvId}/videos`
-      );
+      const similarTvPromise = fetchData(`${API_BASE_URL}/tv/${tvId}/similar`);
+      const creditsPromise = fetchData(`${API_BASE_URL}/tv/${tvId}/credits`);
+      const videosPromise = fetchData(`${API_BASE_URL}/tv/${tvId}/videos`);
 
       const [details, similar, credits, videos] = await Promise.all([
         tvDetailsPromise,
@@ -58,29 +52,33 @@ const TvSeriesDetails = () => {
         creditsPromise,
         videosPromise,
       ]);
-      
-      const creator = credits.crew.find((crew) => crew.job === "Series Creator");
-      
+
+      const creator = credits.crew.find(
+        (crew) => crew.job === "Series Creator"
+      );
+
       const trailer = videos.results.find(
         (video) => video.type === "Trailer" && video.site === "YouTube"
       );
-      
+
       setDetailedSeries({ ...details, creator: creator?.name || "N/A" });
-      setHomepage(details.homepage)
+      setHomepage(details.homepage);
       setSimilarSeries(similar.results.slice(0, 6) || []);
       setTrailerKey(trailer?.key || null);
-
     } catch (error) {
       console.error(`Error fetching TV series details: ${error}`);
-      setErrorMessage(error.message || "Error fetching TV series details. Please try again later.");
+      setErrorMessage(
+        error.message ||
+          "Error fetching TV series details. Please try again later."
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const goToHomepage = () => {
-    window.open(homepage, '_blank');
-  }
+    window.open(homepage, "_blank");
+  };
 
   useEffect(() => {
     if (id) {
@@ -88,7 +86,6 @@ const TvSeriesDetails = () => {
       fetchAllDetails(id);
     }
   }, [id]);
-
 
   if (isLoading)
     return (
@@ -107,17 +104,19 @@ const TvSeriesDetails = () => {
     ? `https://image.tmdb.org/t/p/w500/${detailedSeries.poster_path}`
     : "/no-movie.png";
 
-  const genres = detailedSeries.genres.map((g) => g.name).join(" | ");
+  const genres = detailedSeries.genres.map((g) => (
+    <span key={g.id} className="border-2 mr-2 px-2 py-1 rounded">
+      {g.name}
+    </span>
+  ));
 
-  const runtime = detailedSeries.episode_run_time?.[0] 
-    ? `${detailedSeries.episode_run_time[0]} min (per episode)`
-    : "N/A";
+  const creator = detailedSeries.created_by.map((g) => g.name).join(" | ");
 
   const rating = detailedSeries.vote_average
     ? detailedSeries.vote_average.toFixed(1)
     : "N/A";
-    
-  const seriesTitle = detailedSeries.name || "N/A"; 
+
+  const seriesTitle = detailedSeries.name || "N/A";
   const releaseDate = detailedSeries.first_air_date || "N/A";
   const status = detailedSeries.status || "N/A";
   const numSeasons = detailedSeries.number_of_seasons;
@@ -128,13 +127,16 @@ const TvSeriesDetails = () => {
       <section
         className="relative h-[100vh] flex items-end pb-20 overflow-hidden"
         style={{
-            backgroundImage: `url(${backgroundImageUrl})`,
-            backgroundSize: "cover",
-            backgroundPosition: "top center",
+          backgroundImage: `url(${backgroundImageUrl})`,
+          backgroundSize: "cover",
+          backgroundPosition: "top center",
         }}
       >
-        <button onClick={() => navigate("/")} className="absolute top-1 m-8 mb-4 bg-red-600 hover:bg-red-700 cursor-pointer text-white font-bold px-4 py-2 rounded z-20">
-            ← Back
+        <button
+          onClick={() => navigate("/")}
+          className="absolute top-1 m-8 mb-4 bg-red-600 hover:bg-red-700 cursor-pointer text-white font-bold px-4 py-2 rounded z-20"
+        >
+          ← Back
         </button>
         <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-transparent to-[#0d0d0d] opacity-90 z-10"></div>
         <div className="absolute inset-0 bg-black opacity-50 z-10"></div>
@@ -153,7 +155,7 @@ const TvSeriesDetails = () => {
               {seriesTitle}
             </h2>
             <p className="text-xl font-light text-gray-400 mb-4">
-              {detailedSeries.tagline} 
+              {detailedSeries.tagline}
             </p>
 
             <div className="flex items-center space-x-4 mb-4">
@@ -168,11 +170,7 @@ const TvSeriesDetails = () => {
 
             <div className="space-y-2 mb-8 text-lg">
               <p>
-                <strong>Episode Runtime:</strong> {runtime}
-              </p>
-              <p>
-                <strong>First Air Date:</strong>{" "}
-                {releaseDate}
+                <strong>First Air Date:</strong> {releaseDate}
               </p>
               <p>
                 <strong>Seasons:</strong> {numSeasons || "N/A"}
@@ -184,11 +182,14 @@ const TvSeriesDetails = () => {
                 <strong>Status:</strong> {status}
               </p>
               <p>
-                <strong>Creator:</strong> {detailedSeries.creator}
+                <strong>Creator:</strong> {creator}
               </p>
             </div>
 
-            <button className="bg-red-600 hover:bg-red-700 cursor-pointer text-white font-bold py-3 px-8 rounded transition duration-200 text-xl" onClick={goToHomepage}>
+            <button
+              className="bg-red-600 hover:bg-red-700 cursor-pointer text-white font-bold py-3 px-8 rounded transition duration-200 text-xl"
+              onClick={goToHomepage}
+            >
               Watch Now
             </button>
           </div>
@@ -199,7 +200,7 @@ const TvSeriesDetails = () => {
         <section className="max-w-7xl mx-auto p-8 md:p-16 pt-0">
           <h2
             className="text-3xl font-bold mb-8"
-            style={{paddingTop: "20px"}}
+            style={{ paddingTop: "20px" }}
           >
             Official Trailer
           </h2>

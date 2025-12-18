@@ -63,7 +63,7 @@ const MovieDetails = () => {
       );
 
       setDetailedMovie({ ...details, director: director?.name || "N/A" });
-      setHomepage(details.homepage)
+      setHomepage(details.homepage);
       setSimilarMovies(similar.results.slice(0, 6) || []);
       setTrailerKey(trailer?.key || null);
     } catch (error) {
@@ -75,8 +75,8 @@ const MovieDetails = () => {
   };
 
   const goToHomepage = () => {
-    window.open(homepage, '_blank');
-  }
+    window.open(homepage, "_blank");
+  };
 
   useEffect(() => {
     if (id) {
@@ -102,7 +102,11 @@ const MovieDetails = () => {
     ? `https://image.tmdb.org/t/p/w500/${detailedMovie.poster_path}`
     : "/no-movie.png";
 
-  const genres = detailedMovie.genres.map((g) => g.name).join(" | ");
+  const genres = detailedMovie.genres.map((g) => (
+    <span key={g.id} className="border-2 mr-2 px-2 py-1 rounded">
+      {g.name}
+    </span>
+  ));
   const runtime = detailedMovie.runtime
     ? `${detailedMovie.runtime} min`
     : "N/A";
@@ -115,13 +119,16 @@ const MovieDetails = () => {
       <section
         className="relative h-[100vh] flex items-end pb-20 overflow-hidden"
         style={{
-            backgroundImage: `url(${backgroundImageUrl})`,
-            backgroundSize: "cover",
-            backgroundPosition: "top center",
+          backgroundImage: `url(${backgroundImageUrl})`,
+          backgroundSize: "cover",
+          backgroundPosition: "top center",
         }}
       >
-        <button onClick={() => navigate("/")} className="absolute top-1 m-8 mb-4 bg-red-600 hover:bg-red-700 cursor-pointer text-white font-bold px-4 py-2 rounded z-20">
-            ← Back
+        <button
+          onClick={() => navigate("/")}
+          className="absolute top-1 m-8 mb-4 bg-red-600 hover:bg-red-700 cursor-pointer text-white font-bold px-4 py-2 rounded z-20"
+        >
+          ← Back
         </button>
         <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-transparent to-[#0d0d0d] opacity-90 z-10"></div>
         <div className="absolute inset-0 bg-black opacity-50 z-10"></div>
@@ -163,7 +170,10 @@ const MovieDetails = () => {
               </p>
             </div>
 
-            <button className="bg-red-600 hover:bg-red-700 cursor-pointer text-white font-bold py-3 px-8 rounded transition duration-200 text-xl" onClick={goToHomepage}>
+            <button
+              className="bg-red-600 hover:bg-red-700 cursor-pointer text-white font-bold py-3 px-8 rounded transition duration-200 text-xl"
+              onClick={goToHomepage}
+            >
               Watch Now
             </button>
           </div>
@@ -174,7 +184,7 @@ const MovieDetails = () => {
         <section className="max-w-7xl mx-auto p-8 md:p-16 pt-0">
           <h2
             className="text-3xl font-bold mb-8"
-            style={{paddingTop: "20px"}}
+            style={{ paddingTop: "20px" }}
           >
             Official Trailer
           </h2>
