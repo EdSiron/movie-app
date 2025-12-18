@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "private": true,
-  "homepage": "https://EdSiron.github.io/movie-app",
+  "homepage": "https://EdSiron.github.io/movie-app/",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
